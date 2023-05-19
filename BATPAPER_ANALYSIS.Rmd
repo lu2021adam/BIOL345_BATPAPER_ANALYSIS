@@ -5,7 +5,7 @@ date: '2023-05-15'
 output: html_document
 ---
 
-```{r, include = FALSE}
+```{r, include = FALSE, fig.width= 8}
 library(tidyverse)
 library(knitr)
 library(dplyr)
@@ -68,6 +68,7 @@ library(mclust)
 library(lattice)
 require(pscl) # alternatively can use package ZIM for zero-inflated models
 library(ggpubr)
+library(cowplot)
 
 COMBINED_DATA <- read_csv("~/Desktop/Wildlife_Ecology/Bat_Paper/BIOL345_BATPAPER_ANALYSIS/BUBOLZ_HECKRODT_COMBINED.csv")
 
@@ -93,6 +94,12 @@ COMPLETE_NIGHTLY_SPECIES_ACTIVITY
 COMPLETE_ACTIVITY <- COMBINED_DATA %>% group_by(Species_ID) %>% summarise(Complete_Activity = n())
 
 COMPLETE_ACTIVITY
+
+## Combined Activity/Pond
+
+COMPLETE_POND_SPECIES_ACTIVITY <- COMBINED_DATA %>% group_by(Pond, Species_ID) %>% summarise(Complete_Activity = n())
+
+COMPLETE_POND_SPECIES_ACTIVITY
 
 
 ## Activity/Pond
@@ -124,13 +131,13 @@ RICHNESS_OVERALL
 ```
 ## Investigative Plots
 
-```{r}
+```{r, fig.width= 12}
 ## Activity Pond
 
 OVR_AP<-
   ggplot(ACTIVITY_POND , aes(x=Pond, y=Complete_Activity, fill = Pond))+
   geom_bar(stat="identity", color = "black")+
-  labs(x= "Pond", y= "Total Bat Activity", title = "A.")+
+  labs(x= "Pond", y= "Total Bat Activity")+
   scale_fill_manual(values = c("blue", "darkorange",  "darkorchid", "red", "darkgreen", "deeppink",  "bisque2"))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
   panel.background = element_blank(), axis.line = element_line(colour = "black"))
@@ -140,7 +147,7 @@ OVR_AP<-
 AVG_AP <-
   ggplot(MEAN_ACTIVITY_POND , aes(x=Pond, y=Mean_Activity, fill = Pond))+
   geom_bar(stat="identity", color = "black")+
-  labs(x= "Pond", y= "Mean Bat Activity", title = "C.")+
+  labs(x= "Pond", y= "Mean Bat Activity")+
   geom_errorbar(aes(ymin=Mean_Activity, ymax=Mean_Activity+sd), width=.2,
   position=position_dodge(.9))+
   scale_fill_manual(values = c("blue", "darkorange",  "darkorchid", "red", "darkgreen", "deeppink",  "bisque2"))+
@@ -152,7 +159,7 @@ AVG_AP <-
 OVR_RP <-
   ggplot(RICHNESS_OVERALL , aes(x=Pond, y= Overall_Richness, fill = Pond))+
   geom_bar(stat="identity", color = "black")+
-  labs(x= "Pond", y= "Overall Bat Richness", title = "B.")+
+  labs(x= "Pond", y= "Overall Bat Richness")+
   scale_fill_manual(values = c("blue", "darkorange",  "darkorchid", "red", "darkgreen", "deeppink",  "bisque2"))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
   panel.background = element_blank(), axis.line = element_line(colour = "black"))
@@ -162,7 +169,7 @@ OVR_RP <-
 AVG_RP <- 
   ggplot(RICHNESS_POND , aes(x=Pond, y=Mean_Richness, fill = Pond))+
   geom_bar(stat="identity", color = "black")+
-  labs(x= "Pond", y= "Mean Bat Richness", title = "D")+
+  labs(x= "Pond", y= "Mean Bat Richness")+
   geom_errorbar(aes(ymin=Mean_Richness, ymax=Mean_Richness+sd), width=.2,
   position=position_dodge(.9))+
   scale_fill_manual(values = c("blue", "darkorange",  "darkorchid", "red", "darkgreen", "deeppink",  "bisque2"))+
@@ -170,14 +177,386 @@ AVG_RP <-
   panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
 
-grid.arrange(OVR_AP, OVR_RP, AVG_AP, AVG_RP, ncol=2)
+plot_grid(OVR_AP, OVR_RP, labels=c("A.", "B."), ncol = 2, nrow = 1)
+plot_grid(AVG_AP, AVG_RP , labels=c("C.", "D."), ncol = 2, nrow = 1)
 
 
 ####################################
 
+## Overall Activity At Ponds Boxplot
 
+ACT_PON <-
+  ggplot(SUMMARIZED_DATA , aes(x=Pond, y=N_Activity, fill=Pond))+
+  geom_boxplot(color = "black")+
+  geom_jitter(width = 0.1)+
+  labs(x= "Pond", y= "Nightly Bat Activity")+
+  scale_fill_manual(values = c("blue", "darkorange",  "darkorchid", "red", "darkgreen", "deeppink",  "bisque2"))+
+  stat_summary(fun.y = mean, shape = 1, color = "brown")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  stat_compare_means(method = "anova", label.y = 750)+      # Add global p-value
+  stat_compare_means(label = "p.signif", method = "t.test",
+                     ref.group = ".all.", label.y = 650)
+
+## Richness Pond Boxplots
+
+RICH_PON <-
+  ggplot(SUMMARIZED_DATA , aes(x=Pond, y=N_Richness, fill=Pond))+
+  geom_boxplot(color = "black")+
+  geom_jitter(width = 0.1)+
+  labs(x= "Pond", y= "Nightly Bat Richness")+
+  scale_fill_manual(values = c("blue", "darkorange",  "darkorchid", "red", "darkgreen", "deeppink",  "bisque2"))+
+  stat_summary(fun.y = mean, shape = 1, color = "brown")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  stat_compare_means(method = "anova", label.y = 7)+      # Add global p-value
+  stat_compare_means(label = "p.signif", method = "t.test",
+                     ref.group = ".all.", label.y = 6)
+
+
+## Activity Of Each Species Boxplots
+
+EPTFUS_ACT <-
+  ggplot(SUMMARIZED_DATA , aes(x=Pond, y=EPTFUS, fill=Pond))+
+  geom_boxplot(color = "black")+
+  geom_jitter(width = 0.1)+
+  labs(x= "Pond", y= "Nightly Big Brown Bat Activity")+
+  scale_fill_manual(values = c("blue", "darkorange",  "darkorchid", "red", "darkgreen", "deeppink",  "bisque2"))+
+  stat_summary(fun.y = mean, shape = 1, color = "brown")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  stat_compare_means(method = "anova", label.y = 360)+      # Add global p-value
+  stat_compare_means(label = "p.signif", method = "t.test",
+                     ref.group = ".all.", label.y = 330)
+
+LASBOR_ACT <-
+  ggplot(SUMMARIZED_DATA , aes(x=Pond, y=LASBOR, fill=Pond))+
+  geom_boxplot(color = "black")+
+  geom_jitter(width = 0.1)+
+  labs(x= "Pond", y= "Nightly Eastern Red Bat Activity")+
+  scale_fill_manual(values = c("blue", "darkorange",  "darkorchid", "red", "darkgreen", "deeppink",  "bisque2"))+
+  stat_summary(fun.y = mean, shape = 1, color = "brown")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  stat_compare_means(method = "anova", label.y = 9)+      # Add global p-value
+  stat_compare_means(label = "p.signif", method = "t.test",
+                     ref.group = ".all.", label.y = 8)
+
+
+LASCIN_ACT <-
+  ggplot(SUMMARIZED_DATA , aes(x=Pond, y=LASCIN, fill=Pond))+
+  geom_boxplot(color = "black")+
+  geom_jitter(width = 0.1)+
+  labs(x= "Pond", y= "Nightly Hoary Bat Activity")+
+  scale_fill_manual(values = c("blue", "darkorange",  "darkorchid", "red", "darkgreen", "deeppink",  "bisque2"))+
+  stat_summary(fun.y = mean, shape = 1, color = "brown")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  stat_compare_means(label.y = 200)+      # Add global p-value
+  stat_compare_means(label = "p.signif", ref.group = ".all.", label.y = 175)
+
+
+LASNOC_ACT <-
+  ggplot(SUMMARIZED_DATA , aes(x=Pond, y=LASNOC, fill=Pond))+
+  geom_boxplot(color = "black")+
+  geom_jitter(width = 0.1)+
+  labs(x= "Pond", y= "Nightly Silver-Haired Bat Activity")+
+  scale_fill_manual(values = c("blue", "darkorange",  "darkorchid", "red", "darkgreen", "deeppink",  "bisque2"))+
+  stat_summary(fun.y = mean, shape = 1, color = "brown")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  stat_compare_means(label.y = 600)+      # Add global p-value
+  stat_compare_means(label = "p.signif", ref.group = ".all.", label.y = 550)
+
+
+MYOLUC_ACT <-
+  ggplot(SUMMARIZED_DATA , aes(x=Pond, y=MYOLUC, fill=Pond))+
+  geom_boxplot(color = "black")+
+  geom_jitter(width = 0.1)+
+  labs(x= "Pond", y= "Nightly Little Brown Bat Activity")+
+  scale_fill_manual(values = c("blue", "darkorange",  "darkorchid", "red", "darkgreen", "deeppink",  "bisque2"))+
+  stat_summary(fun.y = mean, shape = 1, color = "brown")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  stat_compare_means(method = "anova", label.y = 110)+      # Add global p-value
+  stat_compare_means(label = "p.signif", method = "t.test",
+                     ref.group = ".all.", label.y = 105)
+
+
+## Plots
+
+plot_grid(ACT_PON, RICH_PON, labels=c("A.", "B."), ncol = 2, nrow = 1)
+plot_grid(LASCIN_ACT, LASNOC_ACT, labels=c("A.", "B."), ncol = 2, nrow = 1)
+plot_grid(EPTFUS_ACT, LASBOR_ACT, labels=c("C.", "D."), ncol = 2, nrow = 1)
+plot_grid(MYOLUC_ACT, labels=c("E."), ncol = 2, nrow = 1)
 
 ```
+
+## Pond Variable Investigation
+
+```{r, fig.width= 12}
+
+### SAVE FACTOR CATEGORICAL VARIABLE
+
+SUMMARIZED_DATA$CanCov <- as.factor(SUMMARIZED_DATA$CanCov)
+
+SUMMARIZED_DATA$VegDen <- as.factor(SUMMARIZED_DATA$VegDen)
+
+SUMMARIZED_DATA$SurCov <- as.factor(SUMMARIZED_DATA$SurCov)
+
+### Activity/Canopy Cover
+
+
+CAN_COV <- 
+ggplot(SUMMARIZED_DATA , aes(x=CanCov, y=N_Activity, fill=CanCov))+
+  geom_boxplot(color = "black")+
+  geom_jitter(width = 0.1)+
+  labs(x= "Pond Canopy Cover", y= "Overall Bat Activity")+
+  scale_fill_manual(values = c("yellow", "green", "blue"))+
+  stat_summary(fun.y = mean, shape = 1, color = "deeppink")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  stat_compare_means(method = "wilcox.test", label.y = 675)+      # Add global p-value
+  stat_compare_means(label = "p.signif", method = "wilcox.test",
+                     ref.group = ".all.", label.y = 630)
+
+
+
+  
+### Activity/Vegetation Density
+
+UND_VEG <- 
+ggplot(SUMMARIZED_DATA , aes(x=VegDen, y=N_Activity, fill=VegDen))+
+  geom_boxplot(color = "black")+
+  geom_jitter(width = 0.1)+
+  labs(x= "Surrounding Vegetation Density", y= "Overall Bat Activity")+
+  scale_fill_manual(values = c("green", "blue"))+
+  stat_summary(fun.y = mean, shape = 1, color = "deeppink")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  stat_compare_means(method = "wilcox.test", label.y = 675)+      # Add global p-value
+  stat_compare_means(label = "p.signif", method = "wilcox.test",
+                     ref.group = ".all.", label.y = 625)
+
+### Activity/ Surface Water Cover
+
+WATER_COV <- 
+ggplot(SUMMARIZED_DATA , aes(x=SurCov, y=N_Activity, fill=SurCov))+
+  geom_boxplot(color = "black")+
+  geom_jitter(width = 0.1)+
+  labs(x= "Surface Water Cover", y= "Overall Bat Activity")+
+  scale_fill_manual(values = c("yellow", "green", "blue"))+
+  stat_summary(fun.y = mean, shape = 1, color = "deeppink")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  stat_compare_means(label.y = 690)+      # Add global p-value
+  stat_compare_means(label = "p.signif", ref.group = ".all.", label.y = 645)
+
+### Plots
+
+plot_grid(CAN_COV, UND_VEG, labels=c("A.", "B."), ncol = 2, nrow = 1)
+plot_grid(WATER_COV, labels=c("C."), ncol = 2, nrow = 1)
+
+```
+
+## Numeric Plots
+
+```{r, fig.width = 10}
+
+### Activity/Pond Area
+
+ACT_PA <- 
+  ggplot(data = SUMMARIZED_DATA, aes(x = Area, y = N_Activity))+ 
+  geom_point(color = "blue")+
+  stat_smooth(method = "lm", color ="firebrick1", se = T)+
+  xlab("Pond Area (m^2)")+ 
+  ylab("Overall Bat Activity")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  panel.background = element_blank(), axis.line = element_line(colour = "black"))
+
+
+### Activity/Average Nightly Temp/
+
+TEMP_ACT <- 
+  ggplot(data = SUMMARIZED_DATA, aes(x = A_Temp, y = N_Activity))+ 
+  geom_point(color = "blue")+
+  stat_smooth(method = "lm", color ="firebrick1", se = T)+
+  xlab("Average Nightly Temperature (C)")+ 
+  ylab("Overall Bat Activity")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  panel.background = element_blank(), axis.line = element_line(colour = "black"))
+
+
+### Activity/Chlorophyll/Species
+
+WATER_DATA <- SUMMARIZED_DATA %>% filter(Pond %in% c("H_BP", "B_SM", "B_NC", "B_TP"))
+
+WATER_PLOT <-
+  ggplot(data = WATER_DATA, aes(x = CHL, y = N_Activity))+ 
+  geom_point(color = "blue")+
+  stat_smooth(method = "lm", color ="firebrick1", se = T)+
+  xlab("Water Chlorophyl (micrograms/L)")+ 
+  ylab("Overall Bat Activity")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  panel.background = element_blank(), axis.line = element_line(colour = "black"))
+
+##### PLOTS
+
+plot_grid(ACT_PA, TEMP_ACT, labels=c("A.", "B."), ncol = 2, nrow = 1)
+plot_grid(WATER_PLOT, labels=c("C."), ncol = 2, nrow = 1)
+
+```
+
+
+### Check Assumptions for T-Test and Anova
+
+```{r}
+#### Homogeneity of Variance: Levene's Test
+
+# Null Hypothesis: The variances are Not different
+# Alternative Hypothesis: The variances are different
+
+## Activity By Pond
+
+leveneTest(N_Activity ~ Pond, data = SUMMARIZED_DATA)
+
+# P = 0.3551; Fail to Reject NUll, Variance equal.
+
+## Richness By Pond 
+
+leveneTest(N_Richness ~ Pond, data = SUMMARIZED_DATA)
+
+# P = 0.9505; Fail to Reject NUll, Variance equal.
+
+## Activity EPTFUS/Pond
+
+leveneTest(EPTFUS ~ Pond, data = SUMMARIZED_DATA)
+
+# P = 0.1381; Fail to Reject NUll, Variance equal.
+
+## Activity LASBOR/Pond
+
+leveneTest(LASBOR ~ Pond, data = SUMMARIZED_DATA)
+
+# P = 0.4205; Fail to Reject NUll, Variance equal.
+
+## Activity LASCIN/Pond
+
+leveneTest(LASCIN ~ Pond, data = SUMMARIZED_DATA)
+
+# P = 0.0008414; Reject NUll, Unequal Variance.
+
+## Activity LASNOC/POND
+
+leveneTest(LASNOC ~ Pond, data = SUMMARIZED_DATA)
+
+# P = 0.00107; Reject NUll, Unequal Variance.
+
+## Activity MYOLUC/Pond
+
+leveneTest(MYOLUC ~ Pond, data = SUMMARIZED_DATA)
+
+# P = 0.1162; Fail to Reject NUll, Variance equal.
+
+## Activity Canopy Cover
+
+leveneTest(N_Activity ~ CanCov, data = SUMMARIZED_DATA)
+
+# P = 0.5407; Fail to Reject NUll, Variance equal.
+
+## Activity Vegetation Density
+
+leveneTest(N_Activity ~ VegDen, data = SUMMARIZED_DATA)
+
+# P = 0.8829; Fail to Reject NUll, Variance equal.
+
+## Activity Surface Water Cover
+
+leveneTest(N_Activity ~ SurCov, data = SUMMARIZED_DATA)
+
+# P = 0.015; Reject NUll, Unequal Variance.
+
+
+Analysis_Variable <- c("Activity/Pond", "Richness/Pond", "EPTFUS/Pond", "LASBOR/Pond", "LASCIN/Pond", "LASNOC/Pond", "MYOLUC/Pond", "Activity/CanCov", "Activity/VegDen", "Activity/SurCov")
+Distribution_Value <- c("F = 1.1784", "F = 0.2576", "F = 1.8478", "F = 1.0533", "F = 6.0529", "F = 5.8137", "F = 1.9692", "F = 0.3843", "F = 0.0221", "F = 4.9917")
+P_Value <- c("P = 0.3551", "P = 0.9505", "P = 0.1381", "P = 0.4205", "P = 0.0008414", "P = 0.00107", "P = 0.1162", "P = 0.5407", "P = 0.8829", "P = 0.015")
+Hypothesis <- c("Fail To Reject Null", "Fail To Reject Null", "Fail To Reject Null", "Fail To Reject Null", "Reject Null Hypothesis", "Reject Null Hypothesis", "Fail To Reject Null", "Fail To Reject Null", "Fail To Reject Null", "Reject Null")
+Interpretation <- c("Variance Equal", "Variance Equal", "Variance Equal", "Variance Equal", "Unequal Variance", "Unequal Variance", "Variance Equal", "Variance Equal", "Variance Equal", "Unequal Variance")
+
+Levene_Statistical_Results <- as.data.frame(cbind(Analysis_Variable, Distribution_Value, P_Value, Hypothesis, Interpretation))
+
+kable(Levene_Statistical_Results, booktabs = T, 
+      caption = "Activity and Richness Levene Equality of Variance Test Results",
+      col.names = c("Analysis Variable", "Distribution Result", "P Value", "Hypothesis", "Interpretation")) %>%
+  kable_styling(full_width = F)
+
+#### Normality of Distribution: 
+
+# Shapiro Wilks Test
+
+#  P > 0.05, Supports Null Hypothesis (Normal Distribution)        
+# P < 0.05, Rejects Null Hypothesis (Not Normal Distribution)
+
+####### N_Activity:
+
+shapiro.test(SUMMARIZED_DATA$N_Activity)
+
+# P = 0.003887; Reject Null Hypothesis, NOT Normally Distributed
+
+####### Richness:
+
+shapiro.test(SUMMARIZED_DATA$N_Richness)
+
+# P = 6.384e-05; Reject Null Hypothesis, NOT Normally Distributed
+
+###### EPTFUS 
+
+shapiro.test(SUMMARIZED_DATA$EPTFUS)
+
+# P = 0.0003079; Reject Null Hypothesis, NOT Normally Distributed
+
+###### LASCIN
+
+shapiro.test(SUMMARIZED_DATA$LASCIN)
+
+# P = 8.354e-05; Reject Null Hypothesis, NOT Normally Distributed
+
+###### LASNOC
+
+shapiro.test(SUMMARIZED_DATA$LASNOC)
+
+# P = 6.055e-09; Reject Null Hypothesis, NOT Normally Distributed
+
+###### MYOLUC
+
+shapiro.test(SUMMARIZED_DATA$MYOLUC)
+
+# P = 1.251e-10; Reject Null Hypothesis, NOT Normally Distributed
+
+##### LASBOR
+
+shapiro.test(SUMMARIZED_DATA$LASBOR)
+
+# P = 3.299e-06; Reject Null Hypothesis, NOT Normally Distributed
+
+## Summary
+
+Analysis_Variable <- c("N_Activity", "Richness", "Activity EPTFUS", "Activity LASCIN", "Activity LASNOC", "Activity MYOLUC", "Activity LASBOR")
+Distribution_Value <- c("W = 0.87936", "W = 0.78713", "W = 0.82526", "W = 0.79391", "W = 0.47277", "W = 0.28448", "W = 0.70449")
+P_Value <- c("P = 0.003887", "P = 6.384e-05", "P = 0.0003079", "P = 8.354e-05", "P = 6.055e-09", "P = 1.251e-10", "P = 3.299e-06")
+Hypothesis <- c("Reject Null", "Reject Null", "Reject Null", "Reject Null", "Reject Null", "Reject Null", "Reject Null")
+Interpretation <- c("Not Normally Distributed", "Not Normally Distributed", "Not Normally Distributed", "Not Normally Distributed", "Not Normally Distributed", "Not Normally Distributed", "Not Normally Distributed")
+
+Shapiro_Statistical_Results <- as.data.frame(cbind(Analysis_Variable, Distribution_Value, P_Value, Hypothesis, Interpretation))
+
+kable(Shapiro_Statistical_Results, booktabs = T, 
+      caption = "Shapiro-Wilks Normality Test Results",
+      col.names = c("Analysis Variable", "Distribution Result", "P Value", "Hypothesis", "Interpretation")) %>%
+  kable_styling(full_width = F)
+
+```
+
+
 
 ## Statistical Tests
 
@@ -189,7 +568,7 @@ grid.arrange(OVR_AP, OVR_RP, AVG_AP, AVG_RP, ncol=2)
 # Null hypothesis (H0): There is no significant difference between the observed and the expected value.
 # Alternative hypothesis (Ha): There is a significant difference between the observed and the expected value.
 
-Species_Activity_Vector = c(3012, 42, 1353, 1327, 145)
+Species_Activity_Vector = c(2208, 35, 906, 1211, 141)
 Proportion_Vector = c(1/5, 1/5, 1/5, 1/5, 1/5)
 
 Bat_Chi_GF = chisq.test(Species_Activity_Vector,p =  Proportion_Vector)
@@ -204,20 +583,114 @@ Bat_Chi_GF$expected
 # Alternative hypothesis (Ha): There is a significant difference between the observed and the expected value. (Not Equally Common)
 
 
+### Chi-Square Independence
+
+Table_Pond_Spec <- table(COMBINED_DATA$Pond, COMBINED_DATA$Species_ID)
+
+Table_Pond_Spec
+
+# Null hypothesis (H0): the row and the column variables of the contingency table are independent.
+# Alternative hypothesis (H1): row and column variables are dependent
+
+Chi_Pond_Spec <- chisq.test(Table_Pond_Spec)
+
+Chi_Pond_Spec
+
+corr_Pond_Spec <- round(Chi_Pond_Spec$residuals, 3)
+
+corr_Pond_Spec
+
+kable(corr_Pond_Spec, method = "html")
+
+col<- colorRampPalette(c("red", "white", "blue"))(20)
+heatmap(x = Chi_Pond_Spec$residuals, col = col)
+
+
+### Unequal Variance & Non-Normality = Kruskal-Wallis ("LASCIN/Pond", "LASNOC/Pond", "SurCov")
+
+# Null: No Significant Difference in Means between Groups
+# Alternative: Significant Difference Between Group Means Exists
+
+### "LASCIN/Pond"
+
+kruskal.test(LASCIN ~ Pond, data = SUMMARIZED_DATA)
+
+### "LASNOC/Pond"
+
+kruskal.test(LASNOC ~ Pond, data = SUMMARIZED_DATA)
+
+### SurCov
+
+kruskal.test(N_Activity ~ SurCov, data = SUMMARIZED_DATA)
+
+
+### Equal Variance & Non-Normality For 2 Levels = Wilcoxon ("CanCov", "VegDen")
+
+# Null Hypothesis: The means of the groups being compared are not different
+# Alternative Hypothesis: The means of the groups being compared are different
+
+### CanCov
+
+wilcox.test(N_Activity ~ CanCov, data= SUMMARIZED_DATA)
+
+### VegDen
+
+wilcox.test(N_Activity ~ VegDen, data= SUMMARIZED_DATA)
+
+### Equal Variance & Non-Normality For More Than 2 Levels = One-Way ANOVA (All Others)
+
+# Null Hypothesis: No Difference Amongst Group Means
+# Alternative Hypothesis: Difference in Means Exist Amongst Groups
+
+### "N_Activity/Pond"
+
+ACT_AOV <- aov(N_Activity ~ Pond, data = SUMMARIZED_DATA)
+
+summary(ACT_AOV)
+
+### "N_Rich/Pond"
+
+RICH_AOV <- aov(N_Richness ~ Pond, data = SUMMARIZED_DATA)
+
+summary(RICH_AOV)
+
+### "EPTFUS/Pond"
+
+EPT_AOV <- aov(EPTFUS ~ Pond, data = SUMMARIZED_DATA)
+
+summary(EPT_AOV)
+
+### "LASBOR/Pond"
+
+BOR_AOV <- aov(LASBOR ~ Pond, data = SUMMARIZED_DATA)
+
+summary(BOR_AOV)
+
+### "MYOLUC/Pond"
+
+LUC_AOV <- aov(MYOLUC ~ Pond, data = SUMMARIZED_DATA)
+
+summary(LUC_AOV)
+
+
+#### Summary Table of Test Results
+
+Analysis_Variable <- c("Activity/Pond", "Richness/Pond", "EPTFUS/Pond", "LASBOR/Pond", "LASCIN/Pond", "LASNOC/Pond", "MYOLUC/Pond", "Activity/CanCov", "Activity/VegDen", "Activity/SurCov")
+Test_Type <- c("ANOVA", "ANOVA", "ANOVA", "ANOVA", "Kruskal-Wallis", "Kruskal-Wallis", "ANOVA", "Wilcoxon", "Wilcoxon", "Kruskal-Wallis")
+Distribution_Value <- c("F = 2.098", "F = 2.36", "F = 3.296", "F = 1.179", "ChiSq = 5.1454", "ChiSq = 3.0543", "F = 1.516", "W = 92", "W = 107", "ChiSq = 2.037")
+P_Value <- c("P = 0.0968", "P = 0.0671", "P = 0.0191", "P = 0.355", "P = 0.5253", "P = 0.802", "P = 0.221", "P = 0.8709", "P = 0.1775", "P = 0.3611")
+Hypothesis <- c("*Fail to Reject Null", "*Fail to Reject Null", "Reject Null", "Fail to Reject Null", "Fail to Reject Null", "Fail to Reject Null", "Fail to Reject Null", "Fail to Reject Null", "Fail to Reject Null", "Fail to Reject Null")
+Interpretation <- c("No Group Mean Differences", "No Group Mean Differences", "Difference Amongst Group Means", "No Group Mean Differences", "No Group Mean Differences", "No Group Mean Differences", "No Group Mean Differences", "No Difference in Medians", "No Difference in Medians", "No Group Mean Differences")
+
+Statistical_Results <- as.data.frame(cbind(Analysis_Variable, Test_Type, Distribution_Value, P_Value, Hypothesis, Interpretation))
+
+kable(Statistical_Results, booktabs = T, 
+      caption = "Bat Richness and Activity Statistical Analysis Results",
+      col.names = c("Analysis Variable", "Test Type", "Distribution Result", "P Value", "Hypothesis", "Interpretation")) %>%
+  kable_styling(full_width = F)
+
 ```
 
-
-## LME Model
-
-```{r}
-
-
-
-```
-
-
-
-## In Class Analysis
 
 
 
