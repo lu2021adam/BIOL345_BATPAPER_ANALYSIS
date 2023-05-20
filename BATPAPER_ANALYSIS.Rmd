@@ -82,6 +82,12 @@ COMBINED_DATA <- COMBINED_DATA %>% na.omit()
 ## Summary Data
 
 ```{r}
+## Activity/Species
+
+SPECIES_ACTIVITY <- COMBINED_DATA %>% group_by(Species_ID) %>% summarise(Complete_Activity = n())
+                                                                         
+SPECIES_ACTIVITY
+
 
 ## Combined Activity/Night
 
@@ -125,6 +131,26 @@ RICHNESS_POND
 RICHNESS_OVERALL <- COMBINED_DATA %>% group_by(Pond) %>% summarise(Overall_Richness = n_unique(Species_ID))
 
 RICHNESS_OVERALL
+
+
+## Activity by Canopy Cover
+
+CanCov_OVERALL <- COMBINED_DATA %>% group_by(CanCov) %>% summarise(Overall_Activity = n())
+
+CanCov_OVERALL
+
+## Actvity by Surface Water Scale
+
+SurWat_OVERALL <- COMBINED_DATA %>% group_by(SurCov) %>% summarise(Overall_Activity = n())
+
+SurWat_OVERALL
+
+## Activity by Vegetation Density
+
+VegDen_OVERALL <- COMBINED_DATA %>% group_by(VegDen) %>% summarise(Overall_Activity = n())
+
+VegDen_OVERALL
+
 
 
 
@@ -189,7 +215,7 @@ ACT_PON <-
   ggplot(SUMMARIZED_DATA , aes(x=Pond, y=N_Activity, fill=Pond))+
   geom_boxplot(color = "black")+
   geom_jitter(width = 0.1)+
-  labs(x= "Pond", y= "Nightly Bat Activity")+
+  labs(x= "Pond", y= "Overall Bat Activity")+
   scale_fill_manual(values = c("blue", "darkorange",  "darkorchid", "red", "darkgreen", "deeppink",  "bisque2"))+
   stat_summary(fun.y = mean, shape = 1, color = "brown")+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -204,7 +230,7 @@ RICH_PON <-
   ggplot(SUMMARIZED_DATA , aes(x=Pond, y=N_Richness, fill=Pond))+
   geom_boxplot(color = "black")+
   geom_jitter(width = 0.1)+
-  labs(x= "Pond", y= "Nightly Bat Richness")+
+  labs(x= "Pond", y= "Overall Bat Richness")+
   scale_fill_manual(values = c("blue", "darkorange",  "darkorchid", "red", "darkgreen", "deeppink",  "bisque2"))+
   stat_summary(fun.y = mean, shape = 1, color = "brown")+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -214,13 +240,14 @@ RICH_PON <-
                      ref.group = ".all.", label.y = 6)
 
 
+
 ## Activity Of Each Species Boxplots
 
 EPTFUS_ACT <-
   ggplot(SUMMARIZED_DATA , aes(x=Pond, y=EPTFUS, fill=Pond))+
   geom_boxplot(color = "black")+
   geom_jitter(width = 0.1)+
-  labs(x= "Pond", y= "Nightly Big Brown Bat Activity")+
+  labs(x= "Pond", y= "Overall Big Brown Bat Activity")+
   scale_fill_manual(values = c("blue", "darkorange",  "darkorchid", "red", "darkgreen", "deeppink",  "bisque2"))+
   stat_summary(fun.y = mean, shape = 1, color = "brown")+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -233,7 +260,7 @@ LASBOR_ACT <-
   ggplot(SUMMARIZED_DATA , aes(x=Pond, y=LASBOR, fill=Pond))+
   geom_boxplot(color = "black")+
   geom_jitter(width = 0.1)+
-  labs(x= "Pond", y= "Nightly Eastern Red Bat Activity")+
+  labs(x= "Pond", y= "Overall Eastern Red Bat Activity")+
   scale_fill_manual(values = c("blue", "darkorange",  "darkorchid", "red", "darkgreen", "deeppink",  "bisque2"))+
   stat_summary(fun.y = mean, shape = 1, color = "brown")+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -247,7 +274,7 @@ LASCIN_ACT <-
   ggplot(SUMMARIZED_DATA , aes(x=Pond, y=LASCIN, fill=Pond))+
   geom_boxplot(color = "black")+
   geom_jitter(width = 0.1)+
-  labs(x= "Pond", y= "Nightly Hoary Bat Activity")+
+  labs(x= "Pond", y= "Overall Hoary Bat Activity")+
   scale_fill_manual(values = c("blue", "darkorange",  "darkorchid", "red", "darkgreen", "deeppink",  "bisque2"))+
   stat_summary(fun.y = mean, shape = 1, color = "brown")+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -260,7 +287,7 @@ LASNOC_ACT <-
   ggplot(SUMMARIZED_DATA , aes(x=Pond, y=LASNOC, fill=Pond))+
   geom_boxplot(color = "black")+
   geom_jitter(width = 0.1)+
-  labs(x= "Pond", y= "Nightly Silver-Haired Bat Activity")+
+  labs(x= "Pond", y= "Overall Silver-Haired Bat Activity")+
   scale_fill_manual(values = c("blue", "darkorange",  "darkorchid", "red", "darkgreen", "deeppink",  "bisque2"))+
   stat_summary(fun.y = mean, shape = 1, color = "brown")+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -273,7 +300,7 @@ MYOLUC_ACT <-
   ggplot(SUMMARIZED_DATA , aes(x=Pond, y=MYOLUC, fill=Pond))+
   geom_boxplot(color = "black")+
   geom_jitter(width = 0.1)+
-  labs(x= "Pond", y= "Nightly Little Brown Bat Activity")+
+  labs(x= "Pond", y= "Overall Little Brown Bat Activity")+
   scale_fill_manual(values = c("blue", "darkorange",  "darkorchid", "red", "darkgreen", "deeppink",  "bisque2"))+
   stat_summary(fun.y = mean, shape = 1, color = "brown")+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
