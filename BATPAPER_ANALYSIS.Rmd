@@ -151,8 +151,11 @@ VegDen_OVERALL <- COMBINED_DATA %>% group_by(VegDen) %>% summarise(Overall_Activ
 
 VegDen_OVERALL
 
+## Pond Characteristics 
 
+Pond_Chars <- SUMMARIZED_DATA %>% group_by(Pond) %>% summarise(CanCov = CanCov, VegDen = VegDen, SurCov = SurCov, Area = Area)
 
+Pond_Chars
 
 ```
 ## Investigative Plots
